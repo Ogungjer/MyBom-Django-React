@@ -21,7 +21,7 @@ const Login = () => {
             localStorage.setItem('access_token', response.data.access);
             localStorage.setItem('refresh_token', response.data.refresh);
             setError('');
-            navigate('/vehicules'); // Rediriger vers la page des véhicules
+            navigate('/home'); // Rediriger vers la page des véhicules
         } catch (err) {
             setError('Invalid credentials');
         }
