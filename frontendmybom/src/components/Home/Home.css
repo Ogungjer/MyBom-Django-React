@@ -1,0 +1,23 @@
+.sidebar-item {
+    cursor: pointer;
+    font-size: 16px;
+    color: white;
+}
+
+.sidebar-item:hover {
+    color: #77B683;
+}
+
+.sidebar-submenu a:hover {
+    color: #77B683;
+}
+
+.sidebar-toggle {
+    position: absolute;
+    color: white;
+    padding: 10px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
