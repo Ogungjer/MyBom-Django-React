@@ -20,8 +20,9 @@ const Login = () => {
             });
             localStorage.setItem('access_token', response.data.access);
             localStorage.setItem('refresh_token', response.data.refresh);
+            localStorage.setItem('username', username);
             setError('');
-            navigate('/home'); // Rediriger vers la page des véhicules
+            navigate('/home');
         } catch (err) {
             setError('Invalid credentials');
         }
