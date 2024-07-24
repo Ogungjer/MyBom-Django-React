@@ -10,6 +10,7 @@ import VolumeTable from './components/Volume/VolumeTable';
 import ConducteurTable from './components/Conducteur/ConducteurTable';
 import VehiculeTable from './components/Vehicule/VehiculeTable';
 import PanneVehiculeTable from './components/PanneVehicule/PanneVehiculeTable';
+import TourneeTable from "./components/Tournee/TourneeTable";
 
 const App = () => {
     return (
@@ -25,6 +26,7 @@ const App = () => {
                     <Route path="/conducteurs" element={<ConducteurTable />} />
                     <Route path="/vehicules" element={<VehiculeTable />} />
                     <Route path="/pannes-vehicules" element={<PanneVehiculeTable />} />
+                    <Route path="/tournees" element={<TourneeTable />} />
                 </Routes>
             </div>
         </Router>

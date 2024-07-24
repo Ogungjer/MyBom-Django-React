@@ -42,6 +42,7 @@ export const deleteVolume = (id) => api.delete(`/volumes/${id}/`);
 export const getConducteurs = () => api.get('/conducteurs/');
 export const createConducteur = (conducteur) => api.post('/conducteurs/', conducteur);
 export const updateConducteur = (id, conducteur) => api.put(`/conducteurs/${id}/`, conducteur);
+
 export const deleteConducteur = (id) => api.delete(`/conducteurs/${id}/`);
 
 
@@ -56,3 +57,16 @@ export const getPanneVehicules = () => api.get('/pannes_vehicules/');
 export const createPanneVehicule = (panneVehicule) => api.post('/pannes_vehicules/', panneVehicule);
 export const updatePanneVehicule = (id, panneVehicule) => api.put(`/pannes_vehicules/${id}/`, panneVehicule);
 export const deletePanneVehicule = (id) => api.delete(`/pannes_vehicules/${id}/`);
+
+
+// Tournees
+
+export const getTournees = (date, periode) => {
+    return api.get('/tournees/', { params: { date, periode } });
+};
+export const createTournees = (tournees) => api.post('/tournees/', tournees);
+
+export const updateTournee = (id, tournee) => api.put(`/tournees/${id}/`, tournee);
+
+
+export const deleteTournee = (id) => api.delete(`/tournees/${id}/`);
