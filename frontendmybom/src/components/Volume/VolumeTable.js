@@ -57,6 +57,7 @@ const VolumeTable = () => {
     };
 
     const columns = [
+        { field: 'id', headerName: 'ID', flex: 1, minWidth: 150 },
         { field: 'volume', headerName: 'Volume', flex: 1, minWidth: 150 },
         {
             field: 'actions',
