@@ -7,6 +7,7 @@ import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
 import CssBaseline from '@mui/material/CssBaseline';
 import Typography from '@mui/material/Typography';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -22,6 +23,12 @@ import './Home.css';
 import {Button} from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import {useNavigate} from "react-router-dom";
+import ConstructionIcon from '@mui/icons-material/Construction';
+import SettingsIcon from '@mui/icons-material/Settings';
+import EarbudsIcon from '@mui/icons-material/Earbuds';
+import ReorderIcon from '@mui/icons-material/Reorder';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import HomeIcon from '@mui/icons-material/Home';
 
 
 const Home = ({ children }) => {
@@ -133,21 +140,23 @@ const Home = ({ children }) => {
                             ...(open && { display: 'none' }),
                         }}
                     >
-                        <MenuIcon />
+                        <ReorderIcon     />
                     </IconButton>
-                    <Typography variant="h6" noWrap component="div"  sx={{ flexGrow: 1 }}>
-                        My Bom
+                    <LocalShippingIcon sx={{ mr: 1  }} />
+                    <Typography variant="h6" noWrap component="div"  sx={{ flexGrow: 1  }}>
+                         My Bom
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
                         {username && (
-                            <Typography variant="h6" noWrap component="div" sx={{ marginRight: 2 }}>
-                                Bonjour {username} Chef d'équipe
+                            <Typography variant="h6" noWrap component="div" sx={{ marginRight: -1 }}>
+                                Bonjour {username}
                             </Typography>
                         )}
                         <Button
+
                             color="inherit"
                             onClick={handleLogout}
-                            startIcon={<LogoutIcon />}
+                            startIcon={<PowerSettingsNewIcon sx={{ fontSize: 3 }} />}
                         >
 
                         </Button>
@@ -175,9 +184,10 @@ const Home = ({ children }) => {
                                 minWidth: 0,
                                 mr: open ? 3 : 'auto',
                                 justifyContent: 'center',
+                                color:'#24234F',
                             }}
                         >
-                            <FaChartBar color="#24234F" />
+                            <HomeIcon  />
                         </ListItemIcon>
                         <ListItemText primary="Accueil" sx={{ color: '#24234F', display: open ? 'block' : 'none' }} />
                     </ListItem>
@@ -194,9 +204,10 @@ const Home = ({ children }) => {
                                 minWidth: 0,
                                 mr: open ? 3 : 'auto',
                                 justifyContent: 'center',
+                                color:'#24234F',
                             }}
                         >
-                            <FaFileAlt color="#24234F" />
+                            <EarbudsIcon  />
                         </ListItemIcon>
                         <ListItemText primary="Gestion des tournées" sx={{ color: '#24234F', display: open ? 'block' : 'none' }} />
                     </ListItem>
@@ -213,9 +224,10 @@ const Home = ({ children }) => {
                                 minWidth: 0,
                                 mr: open ? 3 : 'auto',
                                 justifyContent: 'center',
+                                color:'#24234F',
                             }}
                         >
-                            <FaTable color="#24234F" />
+                            <LocalShippingIcon  />
                         </ListItemIcon>
                         <ListItemText primary="Gestion des véhicules" sx={{ color: '#24234F', display: open ? 'block' : 'none' }} />
                     </ListItem>
@@ -232,9 +244,10 @@ const Home = ({ children }) => {
                                 minWidth: 0,
                                 mr: open ? 3 : 'auto',
                                 justifyContent: 'center',
+                                color:'#24234F',
                             }}
                         >
-                            <FaChartBar color="#24234F" />
+                            <ConstructionIcon  />
                         </ListItemIcon>
                         <ListItemText primary="Gestion des pannes" sx={{ color: '#24234F', display: open ? 'block' : 'none' }} />
                     </ListItem>
@@ -252,9 +265,10 @@ const Home = ({ children }) => {
                                 minWidth: 0,
                                 mr: open ? 3 : 'auto',
                                 justifyContent: 'center',
+                                color:'#24234F',
                             }}
                         >
-                            <FaCogs color="#24234F" />
+                            <SettingsIcon  />
                         </ListItemIcon>
                         <ListItemText primary="Paramètres" sx={{ color: '#24234F', display: open ? 'block' : 'none' }} />
                         {open ? (isCustomOpen ? <ExpandLess /> : <ExpandMore />) : null}

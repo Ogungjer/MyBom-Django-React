@@ -7,13 +7,24 @@ import { Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle, I
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { getVehicules, createVehicule, updateVehicule, deleteVehicule } from '../../services/api';
+import {
+    getVehicules,
+    createVehicule,
+    updateVehicule,
+    deleteVehicule,
+    deleteSecteur,
+    updateSecteur, createSecteur
+} from '../../services/api';
+import {frFR} from "@mui/x-data-grid/locales";
+import FlashMessage from '../FlashMessage/FlashMessage';
+import useFlashMessage from '../FlashMessage/useFlashMessage';
 
 const VehiculeTable = () => {
     const [Vehicules, setVehicules] = useState([]);
     const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState({ code_vehicule: '', volume: '', numero_radio: '',kms_au_compteur: '', disponible: ''  });
     const [editId, setEditId] = useState(null);
+    const { flashMessage, showFlashMessage, hideFlashMessage } = useFlashMessage();
 
     useEffect(() => {
         fetchVehicules();
@@ -35,13 +46,20 @@ const VehiculeTable = () => {
     };
 
     const handleSave = async () => {
-        if (editId) {
-            await updateVehicule(editId, formData);
-        } else {
-            await createVehicule(formData);
+        try {
+            if (editId) {
+                await updateVehicule(editId, formData);
+                showFlashMessage("Mise à jour réussie", "success");
+            } else {
+                await createVehicule(formData);
+                showFlashMessage("Ajout réussi", "success");
+            }
+            fetchVehicules();
+            handleClose();
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde du véhicule:", error);
+            showFlashMessage("Erreur lors de la sauvegarde du véhicule", "error");
         }
-        fetchVehicules();
-        handleClose();
     };
 
     const handleEdit = (id) => {
@@ -52,20 +70,27 @@ const VehiculeTable = () => {
     };
 
     const handleDelete = async (id) => {
-        await deleteVehicule(id);
-        fetchVehicules();
+        try {
+            await deleteVehicule(id);
+            showFlashMessage("Suppression réussie", "success");
+            fetchVehicules();
+        } catch (error) {
+            console.error("Erreur lors de la suppression du vehicule:", error);
+            showFlashMessage("Erreur lors de la suppression du vehicule", "error");
+        }
     };
 
     const columns = [
-        { field: 'code_vehicule', headerName: 'Code', flex: 1, minWidth: 150 },
-        { field: 'volume', headerName: 'Volume', flex: 1, minWidth: 150 },
-        { field: 'numero_radio', headerName: 'N°Radio', flex: 1, minWidth: 150 },
-        { field: 'kms_au_compteur', headerName: 'Kms', flex: 1, minWidth: 150 },
-        { field: 'disponible', headerName: 'Dispo', flex: 1, minWidth: 150 },
+        { field: 'code_vehicule', headerName: 'Code', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'volume', headerName: 'Volume', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'numero_radio', headerName: 'N°Radio', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'kms_au_compteur', headerName: 'Kms', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'disponible', headerName: 'Dispo', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         {
             field: 'actions',
             headerName: 'Actions',
             width: 150,
+            renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>),
             renderCell: (params) => (
                 <>
                     <IconButton onClick={() => handleEdit(params.id)} color="primary">
@@ -81,6 +106,12 @@ const VehiculeTable = () => {
 
     return (
         <Home>
+            <FlashMessage
+                open={flashMessage.open}
+                message={flashMessage.message}
+                severity={flashMessage.severity}
+                onClose={hideFlashMessage}
+            />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4">Liste des Vehicules</Typography>
                 <Button
@@ -99,7 +130,7 @@ const VehiculeTable = () => {
                     pageSize={5}
                     checkboxSelection
                     disableSelectionOnClick
-                    autoHeight
+                    localeText={frFR.components.MuiDataGrid.defaultProps.localeText}
                 />
             </Box>
             <Dialog open={open} onClose={handleClose}>
