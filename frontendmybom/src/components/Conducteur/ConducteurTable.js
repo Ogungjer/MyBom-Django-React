@@ -8,20 +8,29 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { getConducteurs, createConducteur, updateConducteur, deleteConducteur } from '../../services/api';
+import {frFR} from "@mui/x-data-grid/locales";
+import FlashMessage from '../FlashMessage/FlashMessage';
+import useFlashMessage from '../FlashMessage/useFlashMessage';
 
 const ConducteurTable = () => {
     const [conducteurs, setConducteurs] = useState([]);
     const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState({ nom: '', prenom: '' });
     const [editId, setEditId] = useState(null);
+    const { flashMessage, showFlashMessage, hideFlashMessage } = useFlashMessage();
 
     useEffect(() => {
         fetchConducteurs();
     }, []);
 
     const fetchConducteurs = async () => {
-        const response = await getConducteurs();
-        setConducteurs(response.data);
+        try {
+            const response = await getConducteurs();
+            setConducteurs(response.data);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des conducteurs:", error);
+            showFlashMessage("Erreur lors du chargement des conducteurs", "error");
+        }
     };
 
     const handleClickOpen = () => {
@@ -35,13 +44,20 @@ const ConducteurTable = () => {
     };
 
     const handleSave = async () => {
-        if (editId) {
-            await updateConducteur(editId, formData);
-        } else {
-            await createConducteur(formData);
+        try {
+            if (editId) {
+                await updateConducteur(editId, formData);
+                showFlashMessage("Mise à jour réussie", "success");
+            } else {
+                await createConducteur(formData);
+                showFlashMessage("Ajout réussi", "success");
+            }
+            fetchConducteurs();
+            handleClose();
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde du conducteur:", error);
+            showFlashMessage("Erreur lors de la sauvegarde du conducteur", "error");
         }
-        fetchConducteurs();
-        handleClose();
     };
 
     const handleEdit = (id) => {
@@ -52,17 +68,24 @@ const ConducteurTable = () => {
     };
 
     const handleDelete = async (id) => {
-        await deleteConducteur(id);
-        fetchConducteurs();
+        try {
+            await deleteConducteur(id);
+            showFlashMessage("Suppression réussie", "success");
+            fetchConducteurs();
+        } catch (error) {
+            console.error("Erreur lors de la suppression du conducteur:", error);
+            showFlashMessage("Erreur lors de la suppression du conducteur", "error");
+        }
     };
 
     const columns = [
-        { field: 'nom', headerName: 'Nom', flex: 1, minWidth: 150 },
-        { field: 'prenom', headerName: 'Prénom', flex: 1, minWidth: 150 },
+        { field: 'nom', headerName: 'Nom', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'prenom', headerName: 'Prénom', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         {
             field: 'actions',
             headerName: 'Actions',
             width: 150,
+            renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>),
             renderCell: (params) => (
                 <>
                     <IconButton onClick={() => handleEdit(params.id)} color="primary">
@@ -78,6 +101,12 @@ const ConducteurTable = () => {
 
     return (
         <Home>
+            <FlashMessage
+                open={flashMessage.open}
+                message={flashMessage.message}
+                severity={flashMessage.severity}
+                onClose={hideFlashMessage}
+            />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4">Liste des conducteurs</Typography>
                 <Button
@@ -96,7 +125,7 @@ const ConducteurTable = () => {
                     pageSize={5}
                     checkboxSelection
                     disableSelectionOnClick
-                    autoHeight
+                    localeText={frFR.components.MuiDataGrid.defaultProps.localeText}
                 />
             </Box>
             <Dialog open={open} onClose={handleClose}>

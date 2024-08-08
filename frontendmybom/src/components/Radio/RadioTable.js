@@ -8,20 +8,29 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { getRadios, createRadio, updateRadio, deleteRadio } from '../../services/api';
+import {frFR} from "@mui/x-data-grid/locales";
+import FlashMessage from '../FlashMessage/FlashMessage';
+import useFlashMessage from '../FlashMessage/useFlashMessage';
 
 const RadioTable = () => {
     const [radios, setRadios] = useState([]);
     const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState({ numero: '', description: '' });
     const [editId, setEditId] = useState(null);
+    const { flashMessage, showFlashMessage, hideFlashMessage } = useFlashMessage();
 
     useEffect(() => {
         fetchRadios();
     }, []);
 
     const fetchRadios = async () => {
-        const response = await getRadios();
-        setRadios(response.data);
+        try {
+            const response = await getRadios();
+            setRadios(response.data);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des radios:", error);
+            showFlashMessage("Erreur lors du chargement des radios", "error");
+        }
     };
 
     const handleClickOpen = () => {
@@ -35,13 +44,20 @@ const RadioTable = () => {
     };
 
     const handleSave = async () => {
-        if (editId) {
-            await updateRadio(editId, formData);
-        } else {
-            await createRadio(formData);
+        try {
+            if (editId) {
+                await updateRadio(editId, formData);
+                showFlashMessage("Mise à jour réussie", "success");
+            } else {
+                await createRadio(formData);
+                showFlashMessage("Ajout réussi", "success");
+            }
+            fetchRadios();
+            handleClose();
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde du radio:", error);
+            showFlashMessage("Erreur lors de la sauvegarde du radio", "error");
         }
-        fetchRadios();
-        handleClose();
     };
 
     const handleEdit = (id) => {
@@ -52,17 +68,24 @@ const RadioTable = () => {
     };
 
     const handleDelete = async (id) => {
-        await deleteRadio(id);
-        fetchRadios();
+        try {
+            await deleteRadio(id);
+            showFlashMessage("Suppression réussie", "success");
+            fetchRadios();
+        } catch (error) {
+            console.error("Erreur lors de la suppression du radio:", error);
+            showFlashMessage("Erreur lors de la suppression du radio", "error");
+        }
     };
 
     const columns = [
-        { field: 'numero', headerName: 'Numéro', flex: 1, minWidth: 150 },
-        { field: 'description', headerName: 'Description', flex: 2, minWidth: 200 },
+        { field: 'numero', headerName: 'Numéro', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'description', headerName: 'Description', flex: 2, minWidth: 200, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         {
             field: 'actions',
             headerName: 'Actions',
             width: 150,
+            renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>),
             renderCell: (params) => (
                 <>
                     <IconButton onClick={() => handleEdit(params.id)} color="primary">
@@ -78,6 +101,12 @@ const RadioTable = () => {
 
     return (
         <Home>
+            <FlashMessage
+                open={flashMessage.open}
+                message={flashMessage.message}
+                severity={flashMessage.severity}
+                onClose={hideFlashMessage}
+            />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4">Liste des radios</Typography>
                 <Button
@@ -96,7 +125,7 @@ const RadioTable = () => {
                     pageSize={5}
                     checkboxSelection
                     disableSelectionOnClick
-                    autoHeight
+                    localeText={frFR.components.MuiDataGrid.defaultProps.localeText}
                 />
             </Box>
             <Dialog open={open} onClose={handleClose}>

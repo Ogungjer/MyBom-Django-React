@@ -8,20 +8,29 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { getSecteurs, createSecteur, updateSecteur, deleteSecteur } from '../../services/api';
+import {frFR} from "@mui/x-data-grid/locales";
+import FlashMessage from '../FlashMessage/FlashMessage';
+import useFlashMessage from '../FlashMessage/useFlashMessage';
 
 const SecteurTable = () => {
     const [secteurs, setSecteurs] = useState([]);
     const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState({ nom: '', description: '' });
     const [editId, setEditId] = useState(null);
+    const { flashMessage, showFlashMessage, hideFlashMessage } = useFlashMessage();
 
     useEffect(() => {
         fetchSecteurs();
     }, []);
 
     const fetchSecteurs = async () => {
-        const response = await getSecteurs();
-        setSecteurs(response.data);
+        try {
+            const response = await getSecteurs();
+            setSecteurs(response.data);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des secteurs:", error);
+            showFlashMessage("Erreur lors du chargement des secteurs", "error");
+        }
     };
 
     const handleClickOpen = () => {
@@ -35,13 +44,20 @@ const SecteurTable = () => {
     };
 
     const handleSave = async () => {
-        if (editId) {
-            await updateSecteur(editId, formData);
-        } else {
-            await createSecteur(formData);
+        try {
+            if (editId) {
+                await updateSecteur(editId, formData);
+                showFlashMessage("Mise à jour réussie", "success");
+            } else {
+                await createSecteur(formData);
+                showFlashMessage("Ajout réussi", "success");
+            }
+            fetchSecteurs();
+            handleClose();
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde du secteur:", error);
+            showFlashMessage("Erreur lors de la sauvegarde du secteur", "error");
         }
-        fetchSecteurs();
-        handleClose();
     };
 
     const handleEdit = (id) => {
@@ -52,17 +68,24 @@ const SecteurTable = () => {
     };
 
     const handleDelete = async (id) => {
-        await deleteSecteur(id);
-        fetchSecteurs();
+        try {
+            await deleteSecteur(id);
+            showFlashMessage("Suppression réussie", "success");
+            fetchSecteurs();
+        } catch (error) {
+            console.error("Erreur lors de la suppression du secteur:", error);
+            showFlashMessage("Erreur lors de la suppression du secteur", "error");
+        }
     };
 
     const columns = [
-        { field: 'nom', headerName: 'Nom', flex: 1, minWidth: 150 },
-        { field: 'description', headerName: 'Description', flex: 2, minWidth: 200 },
+        { field: 'nom', headerName: 'Nom', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'description', headerName: 'Description', flex: 2, minWidth: 200, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         {
             field: 'actions',
             headerName: 'Actions',
             width: 150,
+            renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>),
             renderCell: (params) => (
                 <>
                     <IconButton onClick={() => handleEdit(params.id)} color="primary">
@@ -78,6 +101,12 @@ const SecteurTable = () => {
 
     return (
         <Home>
+            <FlashMessage
+                open={flashMessage.open}
+                message={flashMessage.message}
+                severity={flashMessage.severity}
+                onClose={hideFlashMessage}
+            />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4">Liste des secteurs</Typography>
                 <Button
@@ -96,7 +125,7 @@ const SecteurTable = () => {
                     pageSize={5}
                     checkboxSelection
                     disableSelectionOnClick
-                    autoHeight
+                    localeText={frFR.components.MuiDataGrid.defaultProps.localeText}
                 />
             </Box>
             <Dialog open={open} onClose={handleClose}>

@@ -3,15 +3,37 @@
 import Home from '../Home/Home';
 import React, { useEffect, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Box, Typography } from '@mui/material';
+import {
+    Button,
+    TextField,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    Box,
+    Typography,
+    MenuItem
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { getPanneVehicules, createPanneVehicule, updatePanneVehicule, deletePanneVehicule } from '../../services/api';
+import {
+    getPanneVehicules,
+    createPanneVehicule,
+    updatePanneVehicule,
+    deletePanneVehicule,
+    getCategoriePannes
+} from '../../services/api';
+import {frFR} from "@mui/x-data-grid/locales";
+import FlashMessage from '../FlashMessage/FlashMessage';
+import useFlashMessage from '../FlashMessage/useFlashMessage';
 
 const PanneVehiculeTable = () => {
+    const { flashMessage, showFlashMessage, hideFlashMessage } = useFlashMessage();
     const [panneVehicules, setPanneVehicules] = useState([]);
     const [open, setOpen] = useState(false);
+    const [categoriePannes, setCategoriePannes] = useState([]);
     const [formData, setFormData] = useState({
         vehicule: '',
         panne: '',
@@ -24,11 +46,17 @@ const PanneVehiculeTable = () => {
 
     useEffect(() => {
         fetchPanneVehicules();
+        fetchData();
     }, []);
 
     const fetchPanneVehicules = async () => {
         const response = await getPanneVehicules();
         setPanneVehicules(response.data);
+    };
+
+    const fetchData = async () => {
+        const categoriePannesRes = await getCategoriePannes();
+        setCategoriePannes(categoriePannesRes.data);
     };
 
     const handleClickOpen = () => {
@@ -49,13 +77,33 @@ const PanneVehiculeTable = () => {
     };
 
     const handleSave = async () => {
-        if (editId) {
-            await updatePanneVehicule(editId, formData);
-        } else {
-            await createPanneVehicule(formData);
+        const dataToSave = { ...formData };
+
+        // Vérifier et retirer les champs vides pour les dates et heures
+        if (!formData.jour_entree) delete dataToSave.jour_entree;
+        if (!formData.heure_entree) delete dataToSave.heure_entree;
+        if (!formData.jour_sortie) delete dataToSave.jour_sortie;
+        if (!formData.heure_sortie) delete dataToSave.heure_sortie;
+
+        try {
+            if (editId) {
+                await updatePanneVehicule(editId, dataToSave);
+                showFlashMessage('Mise à jour réussie', 'success');
+            } else {
+                await createPanneVehicule(dataToSave);
+                showFlashMessage('Ajout réussi', 'success')
+            }
+            fetchPanneVehicules();
+            handleClose();
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde:', error);
+            if (error.response) {
+                console.error('Détails de l\'erreur:', error.response.data);
+                alert('Erreur lors de la sauvegarde: ' + JSON.stringify(error.response.data));
+            } else {
+                showFlashMessage('Erreur lors de la sauvegarde de la panne du véhicule', 'error');
+            }
         }
-        fetchPanneVehicules();
-        handleClose();
     };
 
     const handleEdit = (id) => {
@@ -66,21 +114,28 @@ const PanneVehiculeTable = () => {
     };
 
     const handleDelete = async (id) => {
-        await deletePanneVehicule(id);
-        fetchPanneVehicules();
+        try {
+            await deletePanneVehicule(id);
+            showFlashMessage('Suppression réussie', 'success');
+            fetchPanneVehicules();
+        } catch (error) {
+            console.error("Erreur lors de la suppression :", error);
+            showFlashMessage('Erreur lors de la suppression de la panne de véhicule', 'error');
+        }
     };
 
     const columns = [
-        { field: 'vehicule', headerName: 'Vehicule', flex: 1, minWidth: 150 },
-        { field: 'panne', headerName: 'Panne', flex: 1, minWidth: 150 },
-        { field: 'jour_entree', headerName: 'Jour Entrée', flex: 1, minWidth: 150 },
-        { field: 'heure_entree', headerName: 'Heure Entrée', flex: 1, minWidth: 150 },
-        { field: 'jour_sortie', headerName: 'Jour Sortie', flex: 1, minWidth: 150 },
-        { field: 'heure_sortie', headerName: 'Heure Sortie', flex: 1, minWidth: 150 },
+        { field: 'vehicule', headerName: 'Vehicule', flex: 1, minWidth: 100, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'panne', headerName: 'Panne', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>)},
+        { field: 'jour_entree', headerName: 'Jour Entrée', flex: 1, minWidth: 100, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'heure_entree', headerName: 'Heure Entrée', flex: 1, minWidth: 100, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'jour_sortie', headerName: 'Jour Sortie', flex: 1, minWidth: 100, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'heure_sortie', headerName: 'Heure Sortie', flex: 1, minWidth: 100, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         {
             field: 'actions',
             headerName: 'Actions',
             width: 150,
+            renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>),
             renderCell: (params) => (
                 <>
                     <IconButton onClick={() => handleEdit(params.id)} color="primary">
@@ -96,6 +151,12 @@ const PanneVehiculeTable = () => {
 
     return (
         <Home>
+            <FlashMessage
+                open={flashMessage.open}
+                message={flashMessage.message}
+                severity={flashMessage.severity}
+                onClose={hideFlashMessage}
+            />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4">Liste des pannes de véhicules</Typography>
                 <Button
@@ -114,7 +175,7 @@ const PanneVehiculeTable = () => {
                     pageSize={5}
                     checkboxSelection
                     disableSelectionOnClick
-                    autoHeight
+                    localeText={frFR.components.MuiDataGrid.defaultProps.localeText}
                 />
             </Box>
             <Dialog open={open} onClose={handleClose}>
@@ -129,12 +190,19 @@ const PanneVehiculeTable = () => {
                         onChange={(e) => setFormData({ ...formData, vehicule: e.target.value })}
                     />
                     <TextField
+                        select
                         margin="dense"
                         label="Panne"
                         fullWidth
                         value={formData.panne}
                         onChange={(e) => setFormData({ ...formData, panne: e.target.value })}
-                    />
+                    >
+                        {categoriePannes.map((categoriePanne) => (
+                            <MenuItem key={categoriePanne.id} value={categoriePanne.panne}>
+                                {categoriePanne.panne}
+                            </MenuItem>
+                        ))}
+                    </TextField>
                     <TextField
                         margin="dense"
                         label="Jour Entrée"

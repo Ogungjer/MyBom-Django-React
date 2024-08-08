@@ -68,10 +68,9 @@ class TourneeViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        # Si aucun filtre n'est appliqué, retourner seulement les tournées d'aujourd'hui
-        if not request.query_params.get('date'):
-            today = timezone.now().date()
-            queryset = queryset.filter(date=today)
+        # Si aucun filtre n'est appliqué, retourner toutes les tournées
+        if not request.query_params:
+            queryset = Tournee.objects.all().order_by('-date', '-periode_journee')
 
         page = self.paginate_queryset(queryset)
         if page is not None:

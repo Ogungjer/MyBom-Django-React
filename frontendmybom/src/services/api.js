@@ -62,7 +62,11 @@ export const deletePanneVehicule = (id) => api.delete(`/pannes_vehicules/${id}/`
 // Tournees
 
 export const getTournees = (date, periode) => {
-    return api.get('/tournees/', { params: { date, periode } });
+    if (date && periode) {
+        return api.get('/tournees/', { params: { date, periode } });
+    } else {
+        return api.get('/tournees/');
+    }
 };
 export const createTournees = (tournees) => api.post('/tournees/', tournees);
 
