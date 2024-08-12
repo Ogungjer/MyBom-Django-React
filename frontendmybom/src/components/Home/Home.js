@@ -178,6 +178,7 @@ const Home = ({ children }) => {
                               justifyContent: open ? 'initial' : 'center',
                               px: 4.5,
                           }}
+                              component="a" href="/rapport"
                     >
                         <ListItemIcon
                             sx={{
