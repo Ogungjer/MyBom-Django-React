@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './components/Login/Login';
 import Home from './components/Home/Home';
+import Rapport from './components/Rapport/Rapport';
 import CategoriePanneTable from './components/CategoriePanne/CategoriePanneTable';
 import SecteurTable from './components/Secteur/SecteurTable';
 import RadioTable from './components/Radio/RadioTable';
@@ -19,6 +20,7 @@ const App = () => {
                 <Routes>
                     <Route path="/" element={<Login />} />
                     <Route path="/home" element={<Home />} />
+                    <Route path="/rapport" element={<Rapport />} />
                     <Route path="/categories-pannes" element={<CategoriePanneTable />} />
                     <Route path="/secteurs" element={<SecteurTable />} />
                     <Route path="/radios" element={<RadioTable />} />
