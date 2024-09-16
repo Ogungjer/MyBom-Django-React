@@ -12,9 +12,6 @@ import {
     createVolume,
     updateVolume,
     deleteVolume,
-    deleteVehicule,
-    updateVehicule,
-    createVehicule
 } from '../../services/api';
 import {frFR} from "@mui/x-data-grid/locales";
 import FlashMessage from '../FlashMessage/FlashMessage';

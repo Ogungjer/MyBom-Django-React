@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Bar, Pie } from 'react-chartjs-2';
 import { jsPDF } from "jspdf";
 import 'chart.js/auto';
-import {Select, Button, Typography, Box, TextField, MenuItem} from '@mui/material';
-import { getTournees, getVolumes } from '../../services/api'; // Assurez-vous que ce chemin est correct
-import html2canvas from 'html2canvas';
+import {Button, Typography, Box, TextField, MenuItem} from '@mui/material';
+import { getTournees, getVolumes } from '../../services/api';
+
 
 const StatistiquesRapport = () => {
     const [date, setDate] = useState(new Date());
@@ -89,6 +89,8 @@ const StatistiquesRapport = () => {
     const genererPDF = () => {
         const doc = new jsPDF();
 
+        let yOffset = 30;  // Initialize yOffset to manage vertical positioning
+
         // Titre
         doc.setFontSize(12);
         doc.setTextColor(0, 0, 128);
@@ -96,8 +98,16 @@ const StatistiquesRapport = () => {
         doc.setFontSize(12);
         doc.text(`${date.toLocaleDateString()} - ${periode.toUpperCase()}`, 105, 22, null, null, 'center');
 
-        // Fonction pour créer une section
+        // Function to create a section with dynamic positioning
         const creerSection = (titre, donnees, startY) => {
+            const sectionHeight = Object.keys(donnees).length * 6 + 12; // Calculate section height dynamically
+
+            // Check if new section will overflow the page, if so add a new page
+            if (startY + sectionHeight > doc.internal.pageSize.height - 20) {
+                doc.addPage();
+                startY = 20;  // Reset startY for new page
+            }
+
             doc.setFontSize(14);
             doc.setTextColor(255, 255, 255);
             doc.setFillColor(0, 0, 128);
@@ -112,62 +122,43 @@ const StatistiquesRapport = () => {
                 doc.text(`${value}`, 180, y, null, null, 'right');
                 y += 6;
             });
+
+            return y;  // Return the new y position after the section
         };
 
-        // Nombre de pannes
-        const pannes = Object.entries(rapportData.enPanne).reduce((acc, [vol, count]) => {
-            if (count > 0) acc[vol] = count;
-            return acc;
-        }, {});
-        creerSection("Nombre de pannes", {
+        // Generate sections
+        yOffset = creerSection("Nombre de pannes", {
             "Total": Object.values(rapportData.enPanne).reduce((a, b) => a + b, 0),
-            ...pannes
-        }, 30);
+            ...rapportData.enPanne
+        }, yOffset + 10);
 
-        // Véhicules disponibles
-        const disponibles = Object.entries(rapportData.disponibles).reduce((acc, [vol, count]) => {
-            if (count > 0) acc[vol] = count;
-            return acc;
-        }, {});
-        creerSection("Véhicules disponibles", {
+        yOffset = creerSection("Véhicules disponibles", {
             "Total": Object.values(rapportData.disponibles).reduce((a, b) => a + b, 0),
-            ...disponibles
-        }, 90);
+            ...rapportData.disponibles
+        }, yOffset + 10);
 
-        // Véhicules utilisés
-        const utilises = Object.entries(rapportData.utilises).reduce((acc, [vol, count]) => {
-            if (count > 0) acc[vol] = count;
-            return acc;
-        }, {});
-        creerSection("Véhicules utilisés", {
+        yOffset = creerSection("Véhicules utilisés", {
             "Total": Object.values(rapportData.utilises).reduce((a, b) => a + b, 0),
-            ...utilises
-        }, 150);
+            ...rapportData.utilises
+        }, yOffset + 10);
 
-        // Véhicules non utilisés
-        const nonUtilises = Object.entries(rapportData.nonUtilises).reduce((acc, [vol, count]) => {
-            if (count > 0) acc[vol] = count;
-            return acc;
-        }, {});
-        creerSection("Véhicules non utilisés", {
+        yOffset = creerSection("Véhicules non utilisés", {
             "Total": Object.values(rapportData.nonUtilises).reduce((a, b) => a + b, 0),
-            ...nonUtilises
-        }, 210);
+            ...rapportData.nonUtilises
+        }, yOffset + 10);
 
-        // Kms parcourus
-        creerSection("Kms parcourus", {
+        yOffset = creerSection("Kms parcourus", {
             "Total": rapportData.kmsParcourus,
-        }, 270);
+        }, yOffset + 10);
 
-        // Mode dégradé
-        const degrade = Object.entries(rapportData.modeDégrade).reduce((acc, [vol, count]) => {
-            if (count > 0) acc[vol] = count;
-            return acc;
-        }, {});
-        creerSection("Mode dégradé", degrade, 330);
+        yOffset = creerSection("Mode dégradé", {
+            ...rapportData.modeDégrade
+        }, yOffset + 10);
 
+        // Save the PDF with dynamic content positioning
         doc.save(`rapport_journalier_${date.toISOString().split('T')[0]}_${periode}.pdf`);
     };
+
 
     if (!rapportData) return <div>Chargement des données...</div>;
 
