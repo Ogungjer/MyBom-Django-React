@@ -12,7 +12,6 @@ import {
     createCategoriePanne,
     updateCategoriePanne,
     deleteCategoriePanne,
-    deleteConducteur
 } from '../../services/api';
 import {frFR} from "@mui/x-data-grid/locales";
 import FlashMessage from '../FlashMessage/FlashMessage';
