@@ -12,7 +12,7 @@ import {
     IconButton
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import {createTournees, getTournees, getVolumes, getConducteurs, getSecteurs, updateTournee} from '../../services/api';
+import {createTournees, getTournees, getVolumes, getConducteurs, getSecteurs, updateTournee, getRadios, deleteTournee } from '../../services/api';
 import Home from '../Home/Home';
 import EditIcon from "@mui/icons-material/Edit";
 import CarCrashIcon from '@mui/icons-material/CarCrash';
@@ -27,7 +27,9 @@ import { frFR } from '@mui/x-data-grid/locales';
 import FlashMessage from '../FlashMessage/FlashMessage';
 import useFlashMessage from '../FlashMessage/useFlashMessage';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-
+import DeleteIcon from "@mui/icons-material/Delete";
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 
 const TourneeTable = () => {
@@ -36,6 +38,7 @@ const TourneeTable = () => {
     const [tourneeRows, setTourneeRows] = useState([]);
     const [volumes, setVolumes] = useState([]);
     const [conducteurs, setConducteurs] = useState([]);
+    const [radios, setRadios] = useState([]);
     const [secteurs, setSecteurs] = useState([]);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editingTournee, setEditingTournee] = useState(null);
@@ -49,11 +52,11 @@ const TourneeTable = () => {
         periode_journee: selectedPeriode,
         code_vehicule: '',
         volume: '',
-        heure_depart: '',
+        heure_depart: null,
         kms_depart: '',
         conducteurs: '',
         secteur: '',
-        heure_arrivee: '',
+        heure_arrivee: null,
         kms_arrivee: '',
         observations: '',
         disponible: 'oui',
@@ -70,9 +73,11 @@ const TourneeTable = () => {
         const volumesRes = await getVolumes();
         const conducteursRes = await getConducteurs();
         const secteursRes = await getSecteurs();
+        const radiosRes = await getRadios();
         setVolumes(volumesRes.data);
         setConducteurs(conducteursRes.data);
         setSecteurs(secteursRes.data);
+        setRadios(radiosRes.data);
     };
     const handleExportClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -122,9 +127,6 @@ const TourneeTable = () => {
         setNewTournee(prev => ({ ...prev, [field]: value }));
     };
 
-
-
-
     const fetchTournees = async (date = selectedDate, periode = selectedPeriode) => {
         try {
             const response = await getTournees(date, periode);
@@ -148,6 +150,24 @@ const TourneeTable = () => {
         setEditingTournee(tournee);
         setEditDialogOpen(true);
     };
+
+    const handleDeleteClick = (tournee) => {
+        if (window.confirm(`Êtes-vous sûr de vouloir supprimer cette tournée du ${tournee.date} (${tournee.periode_journee}) ?`)) {
+            deleteTourneeFromTable(tournee.id);
+        }
+    };
+
+    const deleteTourneeFromTable = async (id) => {
+        try {
+            await deleteTournee(id);
+            showFlashMessage("Tournée supprimée avec succès", "success");
+            fetchTournees(selectedDate, selectedPeriode);
+        } catch (error) {
+            console.error('Erreur lors de la suppression de la tournée:', error);
+            showFlashMessage("Erreur lors de la suppression de la tournée", "error");
+        }
+    };
+
 
     const handleEditSave = async () => {
         try {
@@ -364,6 +384,22 @@ const TourneeTable = () => {
     };
 
     const columns = [
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 100,
+            renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>),
+            renderCell: (params) => (
+                <>
+                    <IconButton onClick={() => handleEditClick(params.row)} color="primary">
+                        <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDeleteClick(params.row)} color="secondary">
+                        <DeleteIcon />
+                    </IconButton>
+                </>
+            ),
+        },
         { field: 'date', headerName: 'Date', width: 100, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         { field: 'periode_journee', headerName: 'Période', width: 80, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         {
@@ -395,18 +431,7 @@ const TourneeTable = () => {
         { field: 'numero_radio', headerName: 'N°Radio', width: 100, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         { field: 'kms_parcourus', headerName: 'Kms Parcourus', width: 100, type: 'number', editable: false, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         { field: 'temps_travail', headerName: 'Tmps Travail', width: 100, editable: false, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
-        { field: 'vitesse_moyenne', headerName: 'Vitesse Moy', width: 100, type: 'number', editable: false, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
-        {
-            field: 'actions',
-            headerName: 'Actions',
-            width: 100,
-            renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>),
-            renderCell: (params) => (
-                <IconButton onClick={() => handleEditClick(params.row)} color="primary">
-                    <EditIcon />
-                </IconButton>
-            ),
-        },
+        { field: 'vitesse_moyenne', headerName: 'Vitesse Moy', width: 80, type: 'number', editable: false, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
     ];
     const exportToExcel = () => {
         const workbook = XLSX.utils.book_new();
@@ -651,12 +676,23 @@ const TourneeTable = () => {
                                 <MenuItem value="pas sorti">Pas sorti</MenuItem>
 
                             </TextField>
-
                             <TextField
+                                select
                                 label="Numéro radio"
                                 value={editingTournee.numero_radio}
                                 onChange={(e) => handleEditFieldChange('numero_radio', e.target.value)}
-                            />
+                            >
+                                {radios.map((radio) => (
+                                    <MenuItem key={radio.id} value={radio.numero}>
+                                        {radio.numero}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                            {/*<TextField*/}
+                            {/*    label="Numéro radio"*/}
+                            {/*    value={editingTournee.numero_radio}*/}
+                            {/*    onChange={(e) => handleEditFieldChange('numero_radio', e.target.value)}*/}
+                            {/*/>*/}
                             <TextField
                                 label="Kms parcourus"
                                 type="number"
@@ -700,6 +736,24 @@ const TourneeTable = () => {
                 <DialogTitle>Ajouter une nouvelle tournée</DialogTitle>
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                        <TextField
+                            label="Date"
+                            type="date"
+                            value={newTournee.date}
+                            onChange={(e) => handleNewTourneeChange('date', e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                        />
+
+                        <TextField
+                            select
+                            label="Période"
+                            value={newTournee.periode_journee}
+                            onChange={(e) => handleNewTourneeChange('periode_journee', e.target.value)}
+                        >
+                            <MenuItem value="matin">Matin</MenuItem>
+                            <MenuItem value="apres_midi">Après-midi</MenuItem>
+                        </TextField>
+
                         <TextField
                             label="Code véhicule"
                             value={newTournee.code_vehicule}

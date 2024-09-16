@@ -32,13 +32,18 @@ const StatistiquesRapport = () => {
         try {
             const formattedDate = date.toISOString().split('T')[0]; // Format YYYY-MM-DD
             const tournees = await getTournees(formattedDate, periode);
-            const data = processData(tournees.data);
+
+            // Filter tournees by the selected period if not done on the API side
+            const filteredTournees = tournees.data.filter(tournee => tournee.date=== formattedDate && tournee.periode_journee === periode);
+
+            const data = processData(filteredTournees);
             setRapportData(data);
         } catch (error) {
             console.error("Erreur lors de la récupération des données:", error);
             setRapportData(null);
         }
     };
+
 
     const processData = (tournees) => {
 
@@ -85,7 +90,7 @@ const StatistiquesRapport = () => {
         const doc = new jsPDF();
 
         // Titre
-        doc.setFontSize(16);
+        doc.setFontSize(12);
         doc.setTextColor(0, 0, 128);
         doc.text(`RAPPORT JOURNALIER`, 105, 15, null, null, 'center');
         doc.setFontSize(12);
