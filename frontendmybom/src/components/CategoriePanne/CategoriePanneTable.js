@@ -7,21 +7,37 @@ import { Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle, I
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { getCategoriePannes, createCategoriePanne, updateCategoriePanne, deleteCategoriePanne } from '../../services/api';
+import {
+    getCategoriePannes,
+    createCategoriePanne,
+    updateCategoriePanne,
+    deleteCategoriePanne,
+    deleteConducteur
+} from '../../services/api';
+import {frFR} from "@mui/x-data-grid/locales";
+import FlashMessage from '../FlashMessage/FlashMessage';
+import useFlashMessage from '../FlashMessage/useFlashMessage';
 
 const CategoriePanneTable = () => {
     const [categoriePannes, setCategoriePannes] = useState([]);
     const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState({ panne: '', description: '' });
     const [editId, setEditId] = useState(null);
+    const { flashMessage, showFlashMessage, hideFlashMessage } = useFlashMessage();
 
     useEffect(() => {
         fetchCategoriePannes();
     }, []);
 
     const fetchCategoriePannes = async () => {
-        const response = await getCategoriePannes();
-        setCategoriePannes(response.data);
+        try {
+            const response = await getCategoriePannes();
+            setCategoriePannes(response.data);
+        }catch (error) {
+            console.error("Erreur lors de la récupération des Catégories de pannes:", error);
+            showFlashMessage("Erreur lors du changement des Catégories de pannes", "error")
+        }
+
     };
 
     const handleClickOpen = () => {
@@ -35,13 +51,20 @@ const CategoriePanneTable = () => {
     };
 
     const handleSave = async () => {
-        if (editId) {
-            await updateCategoriePanne(editId, formData);
-        } else {
-            await createCategoriePanne(formData);
+        try {
+            if (editId) {
+                await updateCategoriePanne(editId, formData);
+                showFlashMessage("Mise à jour réussie", "success");
+            } else {
+                await createCategoriePanne(formData);
+                showFlashMessage("Ajout réussi", "success");
+            }
+            fetchCategoriePannes();
+            handleClose();
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde des Categories de pannes:", error);
+            showFlashMessage("Erreur lors de la sauvegarde Categories de pannes", "error");
         }
-        fetchCategoriePannes();
-        handleClose();
     };
 
     const handleEdit = (id) => {
@@ -51,18 +74,26 @@ const CategoriePanneTable = () => {
         handleClickOpen();
     };
 
+
     const handleDelete = async (id) => {
-        await deleteCategoriePanne(id);
-        fetchCategoriePannes();
+        try {
+            await deleteCategoriePanne(id);
+            showFlashMessage("Suppression réussie", "success");
+            fetchCategoriePannes();
+        } catch (error) {
+            console.error("Erreur lors de la suppression des Categories de pannes:", error);
+            showFlashMessage("Erreur lors de la suppression des Categories de pannes", "error");
+        }
     };
 
     const columns = [
-        { field: 'panne', headerName: 'Panne', flex: 1, minWidth: 150 },
-        { field: 'description', headerName: 'Description', flex: 2, minWidth: 200 },
+        { field: 'panne', headerName: 'Panne', flex: 1, minWidth: 150, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
+        { field: 'description', headerName: 'Description', flex: 2, minWidth: 100, renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>) },
         {
             field: 'actions',
             headerName: 'Actions',
             width: 150,
+            renderHeader: (params) => (<strong>{params.colDef.headerName}</strong>),
             renderCell: (params) => (
                 <>
                     <IconButton onClick={() => handleEdit(params.id)} color="primary">
@@ -78,6 +109,12 @@ const CategoriePanneTable = () => {
 
     return (
         <Home>
+            <FlashMessage
+                open={flashMessage.open}
+                message={flashMessage.message}
+                severity={flashMessage.severity}
+                onClose={hideFlashMessage}
+            />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h4">Liste des pannes</Typography>
                 <Button
@@ -89,14 +126,14 @@ const CategoriePanneTable = () => {
                     Ajouter une nouvelle catégorie de panne
                 </Button>
             </Box>
-            <Box sx={{ height: 'calc(100vh - 200px)', width: '100%' }}>
+            <Box sx={{ height: 'calc(100vh - 200px)', width: '100%', padding:'10px'}}>
                 <DataGrid
                     rows={categoriePannes}
                     columns={columns}
                     pageSize={5}
                     checkboxSelection
                     disableSelectionOnClick
-                    autoHeight
+                    localeText={frFR.components.MuiDataGrid.defaultProps.localeText}
                 />
             </Box>
             <Dialog open={open} onClose={handleClose}>
