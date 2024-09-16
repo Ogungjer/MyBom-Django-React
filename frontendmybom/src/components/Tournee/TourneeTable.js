@@ -28,7 +28,6 @@ import FlashMessage from '../FlashMessage/FlashMessage';
 import useFlashMessage from '../FlashMessage/useFlashMessage';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteIcon from "@mui/icons-material/Delete";
-import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 
 

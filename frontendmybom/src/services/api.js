@@ -47,10 +47,10 @@ export const deleteConducteur = (id) => api.delete(`/conducteurs/${id}/`);
 
 
 // Vehicule
-export const getVehicules = () => api.get('/vehicules/');
-export const createVehicule = (vehicule) => api.post('/vehicules/', vehicule);
-export const updateVehicule = (id, vehicule) => api.put(`/vehicules/${id}/`, vehicule);
-export const deleteVehicule = (id) => api.delete(`/vehicules/${id}/`);
+// export const getVehicules = () => api.get('/vehicules/');
+// export const createVehicule = (vehicule) => api.post('/vehicules/', vehicule);
+// export const updateVehicule = (id, vehicule) => api.put(`/vehicules/${id}/`, vehicule);
+// export const deleteVehicule = (id) => api.delete(`/vehicules/${id}/`);
 
 // PanneVehicule
 export const getPanneVehicules = () => api.get('/pannes_vehicules/');

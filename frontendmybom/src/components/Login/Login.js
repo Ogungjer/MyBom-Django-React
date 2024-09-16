@@ -22,7 +22,7 @@ const Login = () => {
             localStorage.setItem('refresh_token', response.data.refresh);
             localStorage.setItem('username', username);
             setError('');
-            navigate('/home');
+            navigate('/rapport');
         } catch (err) {
             setError('Invalid credentials');
         }
